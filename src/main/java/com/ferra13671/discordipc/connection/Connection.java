@@ -1,8 +1,8 @@
-package meteordevelopment.discordipc.connection;
+package com.ferra13671.discordipc.connection;
 
 import com.google.gson.JsonObject;
-import meteordevelopment.discordipc.Opcode;
-import meteordevelopment.discordipc.Packet;
+import com.ferra13671.discordipc.Opcode;
+import com.ferra13671.discordipc.Packet;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

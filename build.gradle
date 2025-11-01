@@ -3,8 +3,8 @@ plugins {
     id "maven-publish"
 }
 
-group "meteordevelopment"
-version "1.1"
+group "com.ferra13671"
+version "1.0"
 
 repositories {
     mavenCentral()
@@ -27,24 +27,15 @@ javadoc {
 
 publishing {
     publications {
-        java(MavenPublication) {
-            from components.java
+        maven(MavenPublication) {
+            groupId = 'com.ferra13671'
+            artifactId = 'discord-ipc'
+            artifact source: jar, classifier: null
+            artifact sourcesJar
         }
     }
 
     repositories {
-        maven {
-            name = "meteor-maven"
-            url = "https://maven.meteordev.org/releases"
-
-            credentials {
-                username = System.getenv("MAVEN_METEOR_ALIAS")
-                password = System.getenv("MAVEN_METEOR_TOKEN")
-            }
-
-            authentication {
-                basic(BasicAuthentication)
-            }
-        }
+        mavenLocal()
     }
 }

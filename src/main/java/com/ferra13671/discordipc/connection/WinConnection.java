@@ -1,8 +1,8 @@
-package meteordevelopment.discordipc.connection;
+package com.ferra13671.discordipc.connection;
 
 import com.google.gson.JsonParser;
-import meteordevelopment.discordipc.Opcode;
-import meteordevelopment.discordipc.Packet;
+import com.ferra13671.discordipc.Opcode;
+import com.ferra13671.discordipc.Packet;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -37,6 +37,7 @@ public class WinConnection extends Connection {
 
         try {
             while (true) {
+
                 // Opcode
                 readFully(intB);
                 Opcode opcode = Opcode.valueOf(Integer.reverseBytes(intB.getInt(0)));

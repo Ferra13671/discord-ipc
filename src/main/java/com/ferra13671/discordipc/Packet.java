@@ -1,4 +1,4 @@
-package meteordevelopment.discordipc;
+package com.ferra13671.discordipc;
 
 import com.google.gson.JsonObject;
 
