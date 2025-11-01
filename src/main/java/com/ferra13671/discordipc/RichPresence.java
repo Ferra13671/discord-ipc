@@ -6,7 +6,7 @@ import java.util.function.Function;
 
 public class RichPresence {
     private JsonObject activityObject = null;
-    private final OnChangeHolder<ActivityInfo> activityInfo = new OnChangeHolder<>(new ActivityInfo(null, null, null, null, null, null, System.currentTimeMillis()),
+    private final OnChangeHolder<ActivityInfo> activityInfo = new OnChangeHolder<>(new ActivityInfo(null, null, null, null, null, null, System.currentTimeMillis() / 1000, null),
             info -> {
                 this.activityObject = info.toJson();
                 trySendActivity();
