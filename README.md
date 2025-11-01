@@ -1,19 +1,22 @@
 # Discord IPC
-Pure Java 16 library for interacting with locally running Discord instance without the use of JNI.  
+Java 21 library for interacting with locally running Discord instance without the use of JNI.  
 Currently, only supports retrieving the logged-in user and setting user's activity.  
 The library is tested on Windows, Linux and macOS.
+
+# Credits
+Thanks meteordevelopment (https://github.com/MeteorDevelopment/discord-ipc) for source code
 
 ## Gradle
 ```groovy
 repositories {
     maven {
-        name = "meteor-maven"
-        url = "https://maven.meteordev.org"
+        name = "ferra13671-maven"
+        url = "https://ferra13671.github.io/maven/"
     }
 }
 
 dependencies {
-    implementation "meteordevelopment:discord-ipc:1.0"
+    implementation "com.ferra13671:discord-ipc:1.0"
     implementation "com.google.code.gson:gson:2.8.9" // GSON is not included but required
 }
 ```
