@@ -1,8 +1,16 @@
 package example;
 
+import com.ferra13671.discordipc.AvatarType;
+import com.ferra13671.discordipc.UserAvatar;
 import com.ferra13671.discordipc.activity.Button;
 import com.ferra13671.discordipc.DiscordIPC;
 import com.ferra13671.discordipc.activity.RichPresence;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class Main {
     public static void main(String[] args) {
@@ -28,6 +36,24 @@ public class Main {
                         .setButtons(new Button("Nah", "https://www.youtube.com/watch?v=dQw4w9WgXcQ"))
         );
         DiscordIPC.setRichPresence(presence);
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        UserAvatar userAvatar = DiscordIPC.getUser().getAvatarImage();
+        if (userAvatar != null) {
+            Path path = Paths.get("Avatar." + (userAvatar.avatarType() == AvatarType.Image ? "png" : "gif"));
+            try (OutputStream outputStream = Files.newOutputStream(path)) {
+                outputStream.write(userAvatar.inputStream().readAllBytes());
+                userAvatar.inputStream().close();
+                System.out.printf("Avatar saved in '%s'", path);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
         //Sleep
         try {

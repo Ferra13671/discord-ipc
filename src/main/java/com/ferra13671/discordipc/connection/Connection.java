@@ -15,7 +15,7 @@ public abstract class Connection {
     private final static String[] UNIX_TEMP_PATHS = { "XDG_RUNTIME_DIR", "TMPDIR", "TMP", "TEMP" };
 
     public static Connection open(Consumer<S2CPacket> callback) {
-        String os = System.getProperty("os.id").toLowerCase();
+        String os = System.getProperty("os.name").toLowerCase();
 
         // Windows
         if (os.contains("win")) {
