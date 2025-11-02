@@ -1,5 +1,5 @@
 # Discord IPC
-Java 21 library for interacting with locally running Discord instance without the use of JNI.  
+Java 17 library for interacting with locally running Discord instance without the use of JNI.  
 Currently, only supports retrieving the logged-in user and setting user's activity.  
 The library is tested on Windows, Linux and macOS.
 
@@ -16,10 +16,11 @@ repositories {
 }
 
 dependencies {
-    implementation "com.ferra13671:discord-ipc:1.0"
+    //
+    implementation "com.ferra13671:discord-ipc:1.2"
     implementation "com.google.code.gson:gson:2.8.9" // GSON is not included but required
 }
 ```
 
 ## Examples
-For examples check out `example/src/main/java/test/Main.java`.  
+For examples check out `example/src/main/java/example/Main.java`.  

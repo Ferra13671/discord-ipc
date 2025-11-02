@@ -1,8 +1,9 @@
-package com.ferra13671.discordipc.connection;
+package com.ferra13671.discordipc.connection.impl;
 
+import com.ferra13671.discordipc.connection.Connection;
+import com.ferra13671.discordipc.connection.packet.S2CPacket;
 import com.google.gson.JsonParser;
-import com.ferra13671.discordipc.Opcode;
-import com.ferra13671.discordipc.Packet;
+import com.ferra13671.discordipc.connection.packet.opcode.Opcode;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -12,9 +13,9 @@ import java.util.function.Consumer;
 
 public class WinConnection extends Connection {
     private final RandomAccessFile raf;
-    private final Consumer<Packet> callback;
+    private final Consumer<S2CPacket> callback;
 
-    WinConnection(String name, Consumer<Packet> callback) throws IOException {
+    public WinConnection(String name, Consumer<S2CPacket> callback) throws IOException {
         this.raf = new RandomAccessFile(name, "rw");
         this.callback = callback;
 
@@ -52,7 +53,7 @@ public class WinConnection extends Connection {
                 String data = Charset.defaultCharset().decode(dataB.rewind()).toString();
 
                 // Call callback
-                callback.accept(new Packet(opcode, JsonParser.parseString(data).getAsJsonObject()));
+                callback.accept(opcode.toPacketFunction.apply(JsonParser.parseString(data).getAsJsonObject()));
             }
         } catch (Exception ignored) {}
     }

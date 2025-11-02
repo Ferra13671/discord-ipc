@@ -1,11 +1,20 @@
 package com.ferra13671.discordipc;
 
+import com.ferra13671.discordipc.activity.RichPresence;
 import com.ferra13671.discordipc.connection.Connection;
-import com.google.gson.JsonObject;
+import com.ferra13671.discordipc.connection.packet.S2CPacket;
+import com.ferra13671.discordipc.connection.packet.impl.c2s.HandsnakePacket;
+import com.ferra13671.discordipc.connection.packet.impl.c2s.SetActivityPacket;
+import com.ferra13671.discordipc.connection.packet.impl.s2c.CloseConnectionPacket;
+import com.ferra13671.discordipc.connection.packet.impl.s2c.DispatchPacket;
+import com.ferra13671.discordipc.connection.packet.impl.s2c.ErrorPacket;
 
 import java.lang.management.ManagementFactory;
 import java.util.function.BiConsumer;
 
+/**
+ * Discord IPC Main Class
+ */
 public class DiscordIPC {
 
     private static Connection connection;
@@ -17,12 +26,36 @@ public class DiscordIPC {
 
     private static IPCUser user;
 
+    /**
+     * Starts an RPC with the specified application ID.
+     *
+     * @param appId application ID.
+     * @return whether a connection was created with the local Discord application or not.
+     */
+    public static boolean start(long appId) {
+        return start(appId, () -> {});
+    }
+
+    /**
+     * Starts an RPC with the specified application ID and action to call when ready.
+     *
+     * @param appId application ID.
+     * @param onReady action to call when ready.
+     * @return whether a connection was created with the local Discord application or not.
+     */
     public static boolean start(long appId, Runnable onReady) {
         return start(appId, onReady, (code, message) -> System.err.println("Discord IPC error " + code + " with message: " + message));
     }
 
+    /**
+     * Starts an RPC with the specified application ID, action to call when ready and the action called in case of an error..
+     *
+     * @param appId application ID.
+     * @param onReady action to call when ready.
+     * @param onError error action.
+     * @return whether a connection was created with the local Discord application or not.
+     */
     public static boolean start(long appId, Runnable onReady, BiConsumer<Integer, String> onError) {
-        // Open connection
         connection = Connection.open(DiscordIPC::onPacket);
         if (connection == null)
             return false;
@@ -30,33 +63,51 @@ public class DiscordIPC {
         DiscordIPC.onReady = onReady;
         DiscordIPC.onError = onError;
 
-
-        // Handshake
-        JsonObject o = new JsonObject();
-        o.addProperty("v", 1);
-        o.addProperty("client_id", Long.toString(appId));
-        connection.write(Opcode.Handshake, o);
+        connection.write(new HandsnakePacket(appId, 1));
 
         return true;
     }
 
+    /**
+     * Returns whether the connection to the local discord is valid or not.
+     *
+     * @return whether the connection to the local discord is valid or not.
+     */
     public static boolean isConnected() {
         return connection != null;
     }
 
+    /**
+     * Returns whether it is currently possible to send activity information or not.
+     *
+     * @return whether it is currently possible to send activity information or not.
+     */
     public static boolean isDispatch() {
         return dispatch;
     }
 
+    /**
+     * Returns information about the Discord account or null if there is no connection to Discord at the moment.
+     *
+     * @return Discord account information or null if there is no connection to Discord at the moment.
+     */
     public static IPCUser getUser() {
         return user;
     }
 
+    /**
+     * Sets RichPresence for Discord IPC.
+     *
+     * @param presence RichPresence.
+     */
     public static void setRichPresence(RichPresence presence) {
         richPresence = presence;
-        richPresence.trySendActivity();
+        updateActivity();
     }
 
+    /**
+     * Stops RPC.
+     */
     public static void stop() {
         if (connection != null) {
             connection.close();
@@ -68,47 +119,53 @@ public class DiscordIPC {
         }
     }
 
+    /**
+     * Sends activity information to the local Discord.
+     * Called automatically when activity information changes.
+     */
     public static void updateActivity() {
-        if (richPresence != null && isDispatch()) {
-            JsonObject args = new JsonObject();
-            args.addProperty("pid", getPID());
-            args.add("activity", richPresence.getActivityObject());
-
-            JsonObject o = new JsonObject();
-            o.addProperty("cmd", "SET_ACTIVITY");
-            o.add("args", args);
-
-            connection.write(Opcode.Frame, o);
-        }
+        if (richPresence != null && isDispatch())
+            connection.write(new SetActivityPacket(getPID(), richPresence.getActivityInfo()));
     }
 
-    private static void onPacket(Packet packet) {
-        // Close
-        if (packet.opcode() == Opcode.Close) {
-            if (onError != null) onError.accept(packet.data().get("code").getAsInt(), packet.data().get("message").getAsString());
-            stop();
-        }
-        // Frame
-        else if (packet.opcode() == Opcode.Frame) {
-            // Error
-            if (packet.data().has("evt") && packet.data().get("evt").getAsString().equals("ERROR")) {
-                JsonObject d = packet.data().getAsJsonObject("data");
-                if (onError != null)
-                    onError.accept(d.get("code").getAsInt(), d.get("message").getAsString());
-            }
-            // Dispatch
-            else if (packet.data().has("cmd") && packet.data().get("cmd").getAsString().equals("DISPATCH")) {
-                dispatch = true;
-                user = IPCUser.fromJson(packet.data().getAsJsonObject("data").getAsJsonObject("user"));
+    private static void onPacket(S2CPacket p) {
+        if (p instanceof CloseConnectionPacket packet)
+            onCloseConnection(packet);
 
-                if (onReady != null)
-                    onReady.run();
+        if (p instanceof ErrorPacket packet)
+            onErrorPacket(packet);
 
-                richPresence.trySendActivity();
-            }
-        }
+        if (p instanceof DispatchPacket packet)
+            onDispatch(packet);
     }
 
+    private static void onCloseConnection(CloseConnectionPacket packet) {
+        if (onError != null)
+            onError.accept(packet.code(), packet.message());
+
+        stop();
+    }
+
+    private static void onErrorPacket(ErrorPacket packet) {
+        if (onError != null)
+            onError.accept(packet.getCode(), packet.getMessage());
+    }
+
+    private static void onDispatch(DispatchPacket packet) {
+        dispatch = true;
+        user = packet.getDiscordUser();
+
+        if (onReady != null)
+            onReady.run();
+
+        updateActivity();
+    }
+
+    /**
+     * Returns the PID of the program.
+     *
+     * @return PID of the program.
+     */
     private static int getPID() {
         String pr = ManagementFactory.getRuntimeMXBean().getName();
         return Integer.parseInt(pr.substring(0, pr.indexOf('@')));

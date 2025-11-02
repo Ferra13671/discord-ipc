@@ -1,8 +1,21 @@
-package com.ferra13671.discordipc;
+package com.ferra13671.discordipc.activity;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+/**
+ * Information about activity displayed in Discord.
+ *
+ * @param details description of the activity.
+ * @param state the state of the activity (for example, a user action, or the id of a command if you created one).
+ * @param largeImage path to the large image (image id in the application assets/link to the image).
+ * @param largeText text displayed when hovering over a large image.
+ * @param smallImage path to the small image (image id in the application assets/link to the image).
+ * @param smallText text displayed when hovering over a small image.
+ * @param startTime activity start time.
+ * @param party team.
+ * @param buttons buttons displayed below the activity. A maximum of two buttons can be displayed below an activity. Also, only other users will see your activity buttons.
+ */
 public record ActivityInfo(String details, String state, String largeImage, String largeText, String smallImage, String smallText, Long startTime, Party party, Button... buttons) {
 
     public ActivityInfo setDetails(String details) {
@@ -41,6 +54,11 @@ public record ActivityInfo(String details, String state, String largeImage, Stri
         return new ActivityInfo(this.details, this.state, this.largeImage, this.largeText, this.smallImage, this.smallText, this.startTime, this.party, buttons);
     }
 
+    /**
+     * Converts activity information into a json object.
+     *
+     * @return json object storing activity information.
+     */
     public JsonObject toJson() {
         JsonObject jsonObject = new JsonObject();
 

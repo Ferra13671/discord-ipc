@@ -1,8 +1,9 @@
-package com.ferra13671.discordipc.connection;
+package com.ferra13671.discordipc.connection.impl;
 
+import com.ferra13671.discordipc.connection.Connection;
+import com.ferra13671.discordipc.connection.packet.S2CPacket;
 import com.google.gson.JsonParser;
-import com.ferra13671.discordipc.Opcode;
-import com.ferra13671.discordipc.Packet;
+import com.ferra13671.discordipc.connection.packet.opcode.Opcode;
 
 import java.io.IOException;
 import java.net.UnixDomainSocketAddress;
@@ -16,9 +17,9 @@ import java.util.function.Consumer;
 public class UnixConnection extends Connection {
     private final Selector s;
     private final SocketChannel sc;
-    private final Consumer<Packet> callback;
+    private final Consumer<S2CPacket> callback;
 
-    public UnixConnection(String name, Consumer<Packet> callback) throws IOException {
+    public UnixConnection(String name, Consumer<S2CPacket> callback) throws IOException {
         this.s = Selector.open();
         this.sc = SocketChannel.open(UnixDomainSocketAddress.of(name));
         this.callback = callback;
@@ -67,7 +68,7 @@ public class UnixConnection extends Connection {
                         if (dataB.hasRemaining()) break;
 
                         String data = Charset.defaultCharset().decode(dataB.rewind()).toString();
-                        callback.accept(new Packet(opcode, JsonParser.parseString(data).getAsJsonObject()));
+                        callback.accept(opcode.toPacketFunction.apply(JsonParser.parseString(data).getAsJsonObject()));
 
                         dataB = null;
                         state = State.Opcode;
