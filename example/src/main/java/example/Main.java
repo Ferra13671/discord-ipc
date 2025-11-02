@@ -1,7 +1,7 @@
 package example;
 
+import com.ferra13671.discordipc.Button;
 import com.ferra13671.discordipc.DiscordIPC;
-import com.ferra13671.discordipc.Party;
 import com.ferra13671.discordipc.RichPresence;
 
 public class Main {
@@ -22,7 +22,7 @@ public class Main {
                         .setLargeText("Large image")
                         .setSmallImage("b")
                         .setSmallText("Small Image")
-                        .setParty(new Party("Test party", 1, 28))
+                        .setButtons(new Button("Nah", "https://www.youtube.com/watch?v=dQw4w9WgXcQ"))
         );
         DiscordIPC.setRichPresence(presence);
 
