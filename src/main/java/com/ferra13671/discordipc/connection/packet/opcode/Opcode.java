@@ -6,9 +6,11 @@ import com.ferra13671.discordipc.connection.packet.impl.s2c.CloseConnectionPacke
 import com.ferra13671.discordipc.connection.packet.impl.s2c.DispatchPacket;
 import com.ferra13671.discordipc.connection.packet.impl.s2c.ErrorPacket;
 import com.google.gson.JsonObject;
+import lombok.AllArgsConstructor;
 
 import java.util.function.Function;
 
+@AllArgsConstructor
 public enum Opcode {
     Handshake(jsonObject -> {
         throw new UnsupportedOperationException("Cannot create C2S packet from json.");
@@ -29,10 +31,6 @@ public enum Opcode {
     Pong(jsonObject -> new RawPacket());
 
     public final Function<JsonObject, S2CPacket> toPacketFunction;
-
-    Opcode(Function<JsonObject, S2CPacket> toPacketFunction) {
-        this.toPacketFunction = toPacketFunction;
-    }
 
     private static final Opcode[] VALUES = values();
 

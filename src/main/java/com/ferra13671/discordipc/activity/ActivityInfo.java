@@ -2,6 +2,7 @@ package com.ferra13671.discordipc.activity;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import lombok.With;
 
 /**
  * Information about activity displayed in Discord.
@@ -14,45 +15,11 @@ import com.google.gson.JsonObject;
  * @param smallText text displayed when hovering over a small image.
  * @param startTime activity start time.
  * @param party team.
- * @param buttons buttons displayed below the activity. A maximum of two buttons can be displayed below an activity. Also, only other users will see your activity buttons.
+ * @param button1 first button displayed below the activity.
+ * @param button2 second button displayed below the activity.
  */
-public record ActivityInfo(String details, String state, String largeImage, String largeText, String smallImage, String smallText, Long startTime, Party party, Button... buttons) {
-
-    public ActivityInfo setDetails(String details) {
-        return new ActivityInfo(details, this.state, this.largeImage, this.largeText, this.smallImage, this.smallText, this.startTime, this.party, this.buttons);
-    }
-
-    public ActivityInfo setState(String state) {
-        return new ActivityInfo(this.details, state, this.largeImage, this.largeText, this.smallImage, this.smallText, this.startTime, this.party, this.buttons);
-    }
-
-    public ActivityInfo setLargeImage(String largeImage) {
-        return new ActivityInfo(this.details, this.state, largeImage, this.largeText, this.smallImage, this.smallText, this.startTime, this.party, this.buttons);
-    }
-
-    public ActivityInfo setLargeText(String largeText) {
-        return new ActivityInfo(this.details, this.state, this.largeImage, largeText, this.smallImage, this.smallText, this.startTime, this.party, this.buttons);
-    }
-
-    public ActivityInfo setSmallImage(String smallImage) {
-        return new ActivityInfo(this.details, this.state, this.largeImage, this.largeText, smallImage, this.smallText, this.startTime, this.party, this.buttons);
-    }
-
-    public ActivityInfo setSmallText(String smallText) {
-        return new ActivityInfo(this.details, this.state, this.largeImage, this.largeText, this.smallImage, smallText, this.startTime, this.party, this.buttons);
-    }
-
-    public ActivityInfo setStartTime(Long startTime) {
-        return new ActivityInfo(this.details, this.state, this.largeImage, this.largeText, this.smallImage, this.smallText, startTime, this.party, this.buttons);
-    }
-
-    public ActivityInfo setParty(Party party) {
-        return new ActivityInfo(this.details, this.state, this.largeImage, this.largeText, this.smallImage, this.smallText, this.startTime, party, this.buttons);
-    }
-
-    public ActivityInfo setButtons(Button... buttons) {
-        return new ActivityInfo(this.details, this.state, this.largeImage, this.largeText, this.smallImage, this.smallText, this.startTime, this.party, buttons);
-    }
+@With
+public record ActivityInfo(String details, String state, String largeImage, String largeText, String smallImage, String smallText, Long startTime, Party party, Button button1, Button button2) {
 
     /**
      * Converts activity information into a json object.
@@ -73,7 +40,7 @@ public record ActivityInfo(String details, String state, String largeImage, Stri
         if (this.party != null)
             jsonObject.add("party", this.party.toJson());
 
-        if (this.buttons != null && this.buttons.length > 0)
+        if (this.button1 != null || this.button2 != null)
             jsonObject.add("buttons", getButtonsArray());
 
         jsonObject.addProperty("instance", false);
@@ -108,8 +75,10 @@ public record ActivityInfo(String details, String state, String largeImage, Stri
     private JsonArray getButtonsArray() {
         JsonArray jsonArray = new JsonArray();
 
-        for (Button button : this.buttons)
-            jsonArray.add(button.toJson());
+        if (this.button1 != null)
+            jsonArray.add(this.button1.toJson());
+        if (this.button2 != null)
+            jsonArray.add(this.button2.toJson());
 
         return jsonArray;
     }

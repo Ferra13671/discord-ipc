@@ -18,6 +18,8 @@ public class RichPresence {
                     null,
                     null,
                     System.currentTimeMillis() / 1000,
+                    null,
+                    null,
                     null
             ),
             info -> DiscordIPC.updateActivity()

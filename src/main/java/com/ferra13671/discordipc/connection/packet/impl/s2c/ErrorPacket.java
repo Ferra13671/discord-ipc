@@ -4,28 +4,12 @@ import com.ferra13671.discordipc.connection.packet.S2CPacket;
 import com.ferra13671.discordipc.connection.packet.opcode.Opcode;
 import com.google.gson.JsonObject;
 
-public class ErrorPacket implements S2CPacket {
-    private final int code;
-    private final String message;
+public record ErrorPacket(int code, String message) implements S2CPacket {
 
     public ErrorPacket(JsonObject jsonObject) {
         JsonObject dataObject = jsonObject.getAsJsonObject("data");
 
-        this.code = dataObject.get("code").getAsInt();
-        this.message = dataObject.get("message").getAsString();
-    }
-
-    public ErrorPacket(int code, String message) {
-        this.code = code;
-        this.message = message;
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public String getMessage() {
-        return message;
+        this(dataObject.get("code").getAsInt(), dataObject.get("message").getAsString());
     }
 
     @Override

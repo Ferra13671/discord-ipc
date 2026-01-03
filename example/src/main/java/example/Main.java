@@ -13,7 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class Main {
-    public static void main(String[] args) {
+    static void main(String[] args) {
         System.out.println("Starting Discord IPC");
 
         //Starting discord ipc
@@ -26,14 +26,14 @@ public class Main {
         RichPresence presence = new RichPresence();
         presence.update(activityInfo ->
                 activityInfo
-                        .setDetails("Monkey!!!")
-                        .setState("ABC")
-                        .setLargeImage("a")
-                        .setLargeText("Large image")
-                        .setSmallImage("b")
-                        .setSmallText("Small Image")
-                        //.setParty(new Party("party", 1, 4))
-                        .setButtons(new Button("Nah", "https://www.youtube.com/watch?v=dQw4w9WgXcQ"))
+                        .withDetails("Monkey!!!")
+                        .withState("ABC")
+                        .withLargeImage("a")
+                        .withLargeText("Large image")
+                        .withSmallImage("b")
+                        .withSmallText("Small Image")
+                        //.withParty(new Party("party", 1, 4))
+                        .withButton1(new Button("Nah", "https://www.youtube.com/watch?v=dQw4w9WgXcQ"))
         );
         DiscordIPC.setRichPresence(presence);
 

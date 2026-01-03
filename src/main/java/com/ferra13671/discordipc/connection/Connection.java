@@ -21,8 +21,10 @@ public abstract class Connection {
         if (os.contains("win")) {
             for (int i = 0; i < 10; i++) {
                 try {
-                    return new WinConnection("\\\\?\\pipe\\discord-ipc-" + i, callback);
-                } catch (IOException ignored) {}
+                    return new WinConnection("\\\\.\\pipe\\discord-ipc-" + i, callback);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
         // Unix

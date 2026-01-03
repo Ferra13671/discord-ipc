@@ -5,19 +5,10 @@ import com.ferra13671.discordipc.connection.packet.S2CPacket;
 import com.ferra13671.discordipc.connection.packet.opcode.Opcode;
 import com.google.gson.JsonObject;
 
-public class DispatchPacket implements S2CPacket {
-    private final IPCUser discordUser;
+public record DispatchPacket(IPCUser discordUser) implements S2CPacket {
 
     public DispatchPacket(JsonObject jsonObject) {
-        this.discordUser = IPCUser.fromJson(jsonObject.getAsJsonObject("data").getAsJsonObject("user"));
-    }
-
-    public DispatchPacket(IPCUser discordUser) {
-        this.discordUser = discordUser;
-    }
-
-    public IPCUser getDiscordUser() {
-        return discordUser;
+        this(IPCUser.fromJson(jsonObject.getAsJsonObject("data").getAsJsonObject("user")));
     }
 
     @Override

@@ -8,6 +8,7 @@ import com.ferra13671.discordipc.connection.packet.impl.c2s.SetActivityPacket;
 import com.ferra13671.discordipc.connection.packet.impl.s2c.CloseConnectionPacket;
 import com.ferra13671.discordipc.connection.packet.impl.s2c.DispatchPacket;
 import com.ferra13671.discordipc.connection.packet.impl.s2c.ErrorPacket;
+import lombok.Getter;
 
 import java.lang.management.ManagementFactory;
 import java.util.function.BiConsumer;
@@ -16,14 +17,22 @@ import java.util.function.BiConsumer;
  * Discord IPC Main Class
  */
 public class DiscordIPC {
-
     private static Connection connection;
     private static Runnable onReady;
     private static BiConsumer<Integer, String> onError;
 
     private static RichPresence richPresence;
+    /**
+     * Whether it is currently possible to send activity information or not.
+     */
+    @Getter
     private static boolean dispatch = false;
 
+    /**
+     * -- GETTER --
+     *  Returns information about the Discord account or null if there is no connection to Discord at the moment.
+     */
+    @Getter
     private static IPCUser user;
 
     /**
@@ -75,24 +84,6 @@ public class DiscordIPC {
      */
     public static boolean isConnected() {
         return connection != null;
-    }
-
-    /**
-     * Returns whether it is currently possible to send activity information or not.
-     *
-     * @return whether it is currently possible to send activity information or not.
-     */
-    public static boolean isDispatch() {
-        return dispatch;
-    }
-
-    /**
-     * Returns information about the Discord account or null if there is no connection to Discord at the moment.
-     *
-     * @return Discord account information or null if there is no connection to Discord at the moment.
-     */
-    public static IPCUser getUser() {
-        return user;
     }
 
     /**
@@ -148,12 +139,12 @@ public class DiscordIPC {
 
     private static void onErrorPacket(ErrorPacket packet) {
         if (onError != null)
-            onError.accept(packet.getCode(), packet.getMessage());
+            onError.accept(packet.code(), packet.message());
     }
 
     private static void onDispatch(DispatchPacket packet) {
         dispatch = true;
-        user = packet.getDiscordUser();
+        user = packet.discordUser();
 
         if (onReady != null)
             onReady.run();
