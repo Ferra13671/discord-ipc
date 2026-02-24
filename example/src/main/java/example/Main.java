@@ -13,7 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class Main {
-    static void main(String[] args) {
+    public static void main(String[] args) {
         System.out.println("Starting Discord IPC");
 
         //Starting discord ipc

@@ -7,9 +7,10 @@ import com.google.gson.JsonObject;
 public record ErrorPacket(int code, String message) implements S2CPacket {
 
     public ErrorPacket(JsonObject jsonObject) {
-        JsonObject dataObject = jsonObject.getAsJsonObject("data");
-
-        this(dataObject.get("code").getAsInt(), dataObject.get("message").getAsString());
+        this(
+                jsonObject.getAsJsonObject("data").get("code").getAsInt(),
+                jsonObject.getAsJsonObject("data").get("message").getAsString()
+        );
     }
 
     @Override
