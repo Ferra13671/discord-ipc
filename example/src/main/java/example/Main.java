@@ -37,11 +37,7 @@ public class Main {
                         .withButton1(new Button("Nah", "https://www.youtube.com/watch?v=dQw4w9WgXcQ"))
         );
 
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        discordIPC.waitDispatch();
 
         UserAvatar userAvatar = discordIPC.getUser().getAvatarImage();
         if (userAvatar != null) {

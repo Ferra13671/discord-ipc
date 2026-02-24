@@ -80,6 +80,14 @@ public class DiscordIPC {
     }
 
     /**
+     * Stops the current thread until the connection is waiting for packets to be sent.
+     */
+    public void waitDispatch() {
+        while (!this.dispatch)
+            Thread.yield();
+    }
+
+    /**
      * Stops RPC.
      */
     public void stop() {
