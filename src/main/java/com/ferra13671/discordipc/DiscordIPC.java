@@ -1,6 +1,6 @@
 package com.ferra13671.discordipc;
 
-import com.ferra13671.discordipc.activity.RichPresence;
+import com.ferra13671.discordipc.activity.ActivityInfo;
 import com.ferra13671.discordipc.connection.Connection;
 import com.ferra13671.discordipc.connection.packet.S2CPacket;
 import com.ferra13671.discordipc.connection.packet.impl.c2s.HandsnakePacket;
@@ -9,31 +9,50 @@ import com.ferra13671.discordipc.connection.packet.impl.s2c.CloseConnectionPacke
 import com.ferra13671.discordipc.connection.packet.impl.s2c.DispatchPacket;
 import com.ferra13671.discordipc.connection.packet.impl.s2c.ErrorPacket;
 import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 
 import java.lang.management.ManagementFactory;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * Discord IPC Main Class
  */
 public class DiscordIPC {
-    private static Connection connection;
-    private static Runnable onReady;
-    private static BiConsumer<Integer, String> onError;
-
-    private static RichPresence richPresence;
+    private Connection connection;
+    @NonNull
+    @Setter
+    private Runnable onReady = () -> {};
+    @NonNull
+    @Setter
+    private BiConsumer<Integer, String> onError = (code, message) -> System.err.println("Discord IPC error " + code + " with message: " + message);
+    private final OnChangeHolder<ActivityInfo> activityInfo = new OnChangeHolder<>(
+            new ActivityInfo(
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    System.currentTimeMillis() / 1000,
+                    null,
+                    null,
+                    null
+            ),
+            info -> updateActivity()
+    );
     /**
      * Whether it is currently possible to send activity information or not.
      */
     @Getter
-    private static boolean dispatch = false;
-
+    private boolean dispatch = false;
     /**
      * -- GETTER --
      *  Returns information about the Discord account or null if there is no connection to Discord at the moment.
      */
     @Getter
-    private static IPCUser user;
+    private IPCUser user;
 
     /**
      * Starts an RPC with the specified application ID.
@@ -41,38 +60,12 @@ public class DiscordIPC {
      * @param appId application ID.
      * @return whether a connection was created with the local Discord application or not.
      */
-    public static boolean start(long appId) {
-        return start(appId, () -> {});
-    }
-
-    /**
-     * Starts an RPC with the specified application ID and action to call when ready.
-     *
-     * @param appId application ID.
-     * @param onReady action to call when ready.
-     * @return whether a connection was created with the local Discord application or not.
-     */
-    public static boolean start(long appId, Runnable onReady) {
-        return start(appId, onReady, (code, message) -> System.err.println("Discord IPC error " + code + " with message: " + message));
-    }
-
-    /**
-     * Starts an RPC with the specified application ID, action to call when ready and the action called in case of an error..
-     *
-     * @param appId application ID.
-     * @param onReady action to call when ready.
-     * @param onError error action.
-     * @return whether a connection was created with the local Discord application or not.
-     */
-    public static boolean start(long appId, Runnable onReady, BiConsumer<Integer, String> onError) {
-        connection = Connection.open(DiscordIPC::onPacket);
-        if (connection == null)
+    public boolean start(long appId) {
+        this.connection = Connection.open(this::onPacket);
+        if (this.connection == null)
             return false;
 
-        DiscordIPC.onReady = onReady;
-        DiscordIPC.onError = onError;
-
-        connection.write(new HandsnakePacket(appId, 1));
+        this.connection.write(new HandsnakePacket(appId, 1));
 
         return true;
     }
@@ -82,44 +75,42 @@ public class DiscordIPC {
      *
      * @return whether the connection to the local discord is valid or not.
      */
-    public static boolean isConnected() {
-        return connection != null;
-    }
-
-    /**
-     * Sets RichPresence for Discord IPC.
-     *
-     * @param presence RichPresence.
-     */
-    public static void setRichPresence(RichPresence presence) {
-        richPresence = presence;
-        updateActivity();
+    public boolean isConnected() {
+        return this.connection != null;
     }
 
     /**
      * Stops RPC.
      */
-    public static void stop() {
-        if (connection != null) {
-            connection.close();
+    public void stop() {
+        if (this.connection != null) {
+            this.connection.close();
 
-            dispatch = false;
-            connection = null;
-            onReady = null;
-            user = null;
+            this.dispatch = false;
+            this.connection = null;
+            this.user = null;
         }
+    }
+
+    /**
+     * Invokes update activity information.
+     *
+     * @param updateConsumer the action called when activity information is updated.
+     */
+    public void updateActivity(Function<ActivityInfo, ActivityInfo> updateConsumer) {
+        this.activityInfo.setValue(updateConsumer.apply(this.activityInfo.getValue()));
     }
 
     /**
      * Sends activity information to the local Discord.
      * Called automatically when activity information changes.
      */
-    public static void updateActivity() {
-        if (richPresence != null && isDispatch())
-            connection.write(new SetActivityPacket(getPID(), richPresence.getActivityInfo()));
+    public void updateActivity() {
+        if (isDispatch())
+            this.connection.write(new SetActivityPacket(getPID(), this.activityInfo.getValue()));
     }
 
-    private static void onPacket(S2CPacket p) {
+    private void onPacket(S2CPacket p) {
         if (p instanceof CloseConnectionPacket packet)
             onCloseConnection(packet);
 
@@ -130,24 +121,21 @@ public class DiscordIPC {
             onDispatch(packet);
     }
 
-    private static void onCloseConnection(CloseConnectionPacket packet) {
-        if (onError != null)
-            onError.accept(packet.code(), packet.message());
+    private void onCloseConnection(CloseConnectionPacket packet) {
+        this.onError.accept(packet.code(), packet.message());
 
         stop();
     }
 
-    private static void onErrorPacket(ErrorPacket packet) {
-        if (onError != null)
-            onError.accept(packet.code(), packet.message());
+    private void onErrorPacket(ErrorPacket packet) {
+        this.onError.accept(packet.code(), packet.message());
     }
 
-    private static void onDispatch(DispatchPacket packet) {
-        dispatch = true;
-        user = packet.discordUser();
+    private void onDispatch(DispatchPacket packet) {
+        this.dispatch = true;
+        this.user = packet.discordUser();
 
-        if (onReady != null)
-            onReady.run();
+        this.onReady.run();
 
         updateActivity();
     }

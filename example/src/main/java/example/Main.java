@@ -4,7 +4,6 @@ import com.ferra13671.discordipc.AvatarType;
 import com.ferra13671.discordipc.UserAvatar;
 import com.ferra13671.discordipc.activity.Button;
 import com.ferra13671.discordipc.DiscordIPC;
-import com.ferra13671.discordipc.activity.RichPresence;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -16,15 +15,17 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("Starting Discord IPC");
 
+        DiscordIPC discordIPC = new DiscordIPC();
+        discordIPC.setOnReady(() -> System.out.println("Logged in account: " + discordIPC.getUser().username()));
+
         //Starting discord ipc
-        if (!DiscordIPC.start(932987954815696957L, () -> System.out.println("Logged in account: " + DiscordIPC.getUser().username()))) {
+        if (!discordIPC.start(932987954815696957L)) {
             System.out.println("Failed to start Discord IPC");
             return;
         }
 
         //Setup activity
-        RichPresence presence = new RichPresence();
-        presence.update(activityInfo ->
+        discordIPC.updateActivity(activityInfo ->
                 activityInfo
                         .withDetails("Monkey!!!")
                         .withState("ABC")
@@ -35,7 +36,6 @@ public class Main {
                         //.withParty(new Party("party", 1, 4))
                         .withButton1(new Button("Nah", "https://www.youtube.com/watch?v=dQw4w9WgXcQ"))
         );
-        DiscordIPC.setRichPresence(presence);
 
         try {
             Thread.sleep(1000);
@@ -43,7 +43,7 @@ public class Main {
             e.printStackTrace();
         }
 
-        UserAvatar userAvatar = DiscordIPC.getUser().getAvatarImage();
+        UserAvatar userAvatar = discordIPC.getUser().getAvatarImage();
         if (userAvatar != null) {
             Path path = Paths.get("Avatar." + (userAvatar.avatarType() == AvatarType.Image ? "png" : "gif"));
             try (OutputStream outputStream = Files.newOutputStream(path)) {
@@ -64,6 +64,6 @@ public class Main {
 
         //Stopping discord ipc
         System.out.println("Stopping Discord IPC");
-        DiscordIPC.stop();
+        discordIPC.stop();
     }
 }
