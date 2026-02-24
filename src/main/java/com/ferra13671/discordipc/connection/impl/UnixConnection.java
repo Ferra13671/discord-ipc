@@ -17,12 +17,11 @@ import java.util.function.Consumer;
 public class UnixConnection extends Connection {
     private final Selector s;
     private final SocketChannel sc;
-    private final Consumer<S2CPacket> callback;
 
     public UnixConnection(String name, Consumer<S2CPacket> callback) throws IOException {
+        super(callback);
         this.s = Selector.open();
         this.sc = SocketChannel.open(UnixDomainSocketAddress.of(name));
-        this.callback = callback;
 
         sc.configureBlocking(false);
         sc.register(s, SelectionKey.OP_READ);

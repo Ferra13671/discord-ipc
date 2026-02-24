@@ -4,15 +4,19 @@ import com.ferra13671.discordipc.connection.impl.UnixConnection;
 import com.ferra13671.discordipc.connection.impl.WinConnection;
 import com.ferra13671.discordipc.connection.packet.C2SPacket;
 import com.ferra13671.discordipc.connection.packet.S2CPacket;
-import com.google.gson.JsonObject;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.UUID;
 import java.util.function.Consumer;
 
 public abstract class Connection {
     private final static String[] UNIX_TEMP_PATHS = { "XDG_RUNTIME_DIR", "TMPDIR", "TMP", "TEMP" };
+
+    protected final Consumer<S2CPacket> callback;
+
+    public Connection(Consumer<S2CPacket> onPacketCallback) {
+        this.callback = onPacketCallback;
+    }
 
     public static Connection open(Consumer<S2CPacket> callback) {
         String os = System.getProperty("os.name").toLowerCase();
@@ -50,18 +54,7 @@ public abstract class Connection {
     }
 
     public void write(C2SPacket packet) {
-        JsonObject packetObject = packet.toJson();
-
-        packetObject.addProperty("nonce", UUID.randomUUID().toString());
-
-        byte[] d = packetObject.toString().getBytes();
-        ByteBuffer packetBuf = ByteBuffer.allocate(d.length + 8);
-        packetBuf.putInt(Integer.reverseBytes(packet.getOpcode().ordinal()));
-        packetBuf.putInt(Integer.reverseBytes(d.length));
-        packetBuf.put(d);
-
-        packetBuf.rewind();
-        write(packetBuf);
+        write(C2SPacket.writeToBuffer(packet));
     }
 
     protected abstract void write(ByteBuffer buffer);

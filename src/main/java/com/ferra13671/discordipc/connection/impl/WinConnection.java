@@ -13,11 +13,10 @@ import java.util.function.Consumer;
 
 public class WinConnection extends Connection {
     private final RandomAccessFile raf;
-    private final Consumer<S2CPacket> callback;
 
     public WinConnection(String name, Consumer<S2CPacket> callback) throws IOException {
+        super(callback);
         this.raf = new RandomAccessFile(name, "rw");
-        this.callback = callback;
 
         Thread thread = new Thread(this::run);
         thread.setName("Discord IPC - Read thread");
